@@ -241,8 +241,27 @@ contract NameServiceTest is Test {
         vm.prank(testUser2);
         vm.expectRevert(NameService.NameService__HashAlreadyReserved.selector);
         nameService.reserveName(nameHash);
+
+        vm.prank(testUser2);
+        vm.expectRevert(NameService.NameService__InvalidReservation.selector);
+        nameService.registerName(nameHash, name, salt);
+
         skip(TIME_TO_COMPLETE_REGISTRATION + 1);
         vm.prank(testUser2);
         nameService.reserveName(nameHash);
+    }
+
+    function test_NonOwnerCannotExtendTime() public {
+        test_Registration();
+        vm.prank(testUser2);
+        vm.expectRevert(abi.encodeWithSelector(NameService.NameService__NotNameOwner.selector, testUser, testUser2));
+        nameService.renewRegistration("test");
+    }
+
+    function test_NonOwnerCannotDelteRegistration() public {
+        test_Registration();
+        vm.prank(testUser2);
+        vm.expectRevert(abi.encodeWithSelector(NameService.NameService__NotNameOwner.selector, testUser, testUser2));
+        nameService.deleteRegistration("test");
     }
 }
